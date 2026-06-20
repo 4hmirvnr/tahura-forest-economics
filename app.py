@@ -1,87 +1,342 @@
+```python
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
 
-# Konfigurasi Halaman
-st.set_page_config(page_title="Valuasi Ekonomi Tahura Djuanda", page_icon="🌲", layout="wide")
+# ==================================================
+# KONFIGURASI HALAMAN
+# ==================================================
 
-# ==========================================
-# STATE MANAGEMENT
-# ==========================================
-if 'luas' not in st.session_state: st.session_state.luas = 590
-if 'kerapatan' not in st.session_state: st.session_state.kerapatan = 80
+st.set_page_config(
+    page_title="PBL 6 - Tahura Ir. H. Djuanda",
+    page_icon="🌳",
+    layout="wide"
+)
 
-# Sidebar Navigasi
-st.sidebar.title("🌲 Menu Navigasi")
-menu = st.sidebar.radio("Pilih Modul:", [
-    "1. Beranda", "2. Profil Tahura", "3. Kalkulator TEV", 
-    "4. Trade-off Lahan", "5. Kebijakan PES", "6. Kasus Interaktif", "7. Visualisasi TEV"
-])
+# ==================================================
+# SIDEBAR
+# ==================================================
 
-# ==========================================
-# LOGIKA MENU
-# ==========================================
-if menu == "1. Beranda":
-    st.title("PBL 6  ̶  Ekonomi Sumber Daya Alam dan Lingkungan 🌍")
+st.sidebar.title("🌳 Menu Navigasi")
+
+menu = st.sidebar.selectbox(
+    "Pilih Menu",
+    [
+        "Beranda",
+        "Profil Tahura Ir. H. Djuanda",
+        "Kalkulator TEV",
+        "Trade-off Lahan",
+        "Kebijakan PES",
+        "Kasus Interaktif",
+        "Visualisasi TEV"
+    ]
+)
+
+# ==================================================
+# BERANDA
+# ==================================================
+
+if menu == "Beranda":
+
+    st.title("PBL 6 – Ekonomi Sumber Daya Alam dan Lingkungan")
+
     st.markdown("---")
+
     st.subheader("Identitas Kelompok 3")
-    st.info("• Ahmad Irvan Nur Varizki (10090224011)\n• Freya Helga Pebrian (10090224017)\n• Muhammad Yaasin As-Suhaimi (10090224028)")
-    st.markdown("**Dosen Pengampu:** Yuhka Sundaya, S.E., M.S.i")
 
-elif menu == "2. Profil Tahura":
-    st.title("Profil Taman Hutan Raya Ir. H. Juanda 🏞️")
-    st.write("Tahura pertama di Indonesia, diresmikan 1985. Luas ±590 Ha, elevasi 770-1.330 mdpl.")
-    st.write("Fungsi: Daerah tangkapan air utama Sungai Cikapundung & destinasi wisata (Gua Belanda/Jepang).")
-    st.write("Biodiversitas: 2.500 jenis flora, habitat monyet kra, burung kepodang, dan tupai.")
+    st.write("• Ahmad Irvan Nur Varizki (10090224011)")
+    st.write("• Freya Helga Pebrian (10090224017)")
+    st.write("• Muhammad Yaasin As-Suhaimi (10090224028)")
 
-elif menu == "3. Kalkulator TEV":
-    st.header("Kalkulator TEV 🧮")
-    st.session_state.luas = st.number_input("Luas Lahan (Ha)", value=st.session_state.luas)
-    st.session_state.kerapatan = st.slider("Kerapatan Vegetasi (%)", 10, 100, st.session_state.kerapatan)
-    
-    factor = st.session_state.luas * (st.session_state.kerapatan / 100)
-    # Kalkulasi sesuai komponen permintaan
-    guna_langsung = factor * 25  # wisata & hasil hutan
-    jasa_ling = factor * 45     # air & karbon
-    nilai_pilihan = factor * 15 # potensi masa depan
-    nilai_eksis = factor * 15   # flora & fauna
-    
-    c1, c2 = st.columns(2)
-    c1.metric("Nilai Guna Langsung", f"{guna_langsung:,.0f} Juta")
-    c1.metric("Jasa Lingkungan", f"{jasa_ling:,.0f} Juta")
-    c2.metric("Nilai Pilihan", f"{nilai_pilihan:,.0f} Juta")
-    c2.metric("Nilai Eksistensi", f"{nilai_eksis:,.0f} Juta")
-    st.success(f"### TOTAL TEV: Rp {guna_langsung + jasa_ling + nilai_pilihan + nilai_eksis:,.0f} Juta")
+    st.markdown("### Dosen Pengampu")
+    st.write("Yuhka Sundaya, S.E., M.Si")
 
-elif menu == "4. Trade-off Lahan":
-    st.header("Simulasi Trade-off Lahan ⚖️")
-    v1 = st.slider("Nilai Hutan Lestari (Milyar)", 10, 200, 100)
-    v2 = st.slider("Nilai Konversi Lahan Penduduk (Milyar)", 10, 200, 70)
-    
-    fig, ax = plt.subplots(figsize=(6, 3))
-    ax.barh(['Hutan Lestari', 'Konversi Lahan'], [v1, v2], color=['#1a5227', '#bd623b'])
-    st.pyplot(fig)
+    st.markdown("---")
 
-elif menu == "5. Kebijakan PES":
-    st.header("Kebijakan Payment for Ecosystem Services (PES) 💧")
-    st.markdown("Pihak pemanfaat: BPAB-DC, PDAM Tirtawening, dan PLTA Dago Bengkok.")
-    penggunaan = st.number_input("Debit Air yang Dimanfaatkan (m3/thn)", value=5000000)
-    tarif = st.slider("Tarif Jasa Lingkungan (Rp/m3)", 100, 1000, 250)
-    st.metric("Total Kompensasi Jasa Air", f"Rp {penggunaan * tarif:,.0f}")
+    st.success(
+        "Dashboard ini digunakan untuk menganalisis nilai ekonomi "
+        "Taman Hutan Raya Ir. H. Djuanda menggunakan pendekatan "
+        "Ekonomi Sumber Daya Alam dan Lingkungan."
+    )
 
-elif menu == "6. Kasus Interaktif":
-    st.header("Kasus Interaktif Tahura 🐒")
-    st.info("Analisis peran Tahura sebagai penyangga kehidupan Kota Bandung melalui mekanisme PES dan ekowisata.")
-    st.table(pd.DataFrame({
-        "Sektor": ["Penyediaan Air", "Ekowisata", "Mitigasi Bencana"],
-        "Pemanfaat": ["PDAM/Masyarakat", "Wisatawan", "Cekungan Bandung"]
-    }))
+# ==================================================
+# PROFIL TAHURA
+# ==================================================
 
-elif menu == "7. Visualisasi TEV":
-    st.header("Visualisasi TEV 📊")
-    factor = st.session_state.luas * (st.session_state.kerapatan / 100)
-    vals = [factor * 25, factor * 45, factor * 15, factor * 15]
-    
-    fig, ax = plt.subplots()
-    ax.pie(vals, labels=['Langsung', 'Jasa Ling', 'Pilihan', 'Eksistensi'], autopct='%1.1f%%')
-    st.pyplot(fig)
+elif menu == "Profil Tahura Ir. H. Djuanda":
+
+    st.title("Profil Taman Hutan Raya Ir. H. Djuanda")
+
+    st.markdown("""
+Taman Hutan Raya (Tahura) Ir. H. Djuanda merupakan kawasan pelestarian alam sekaligus
+Taman Hutan Raya pertama di Indonesia yang diresmikan oleh Presiden Soeharto pada
+tanggal 14 Januari 1985.
+
+Berlokasi di kawasan Ciburial, Kecamatan Cimenyan, Bandung, Jawa Barat,
+kawasan ini dinamai untuk menghormati jasa pahlawan nasional Ir. H. Djuanda.
+
+Tahura Ir. H. Djuanda memiliki luas sekitar **590 hektare**
+dengan ketinggian antara **770–1.330 mdpl**.
+
+Selain menjadi destinasi wisata sejarah dan alam yang terkenal melalui
+Gua Belanda dan Gua Jepang, kawasan ini juga berfungsi sebagai daerah
+tangkapan air penting bagi Sungai Cikapundung.
+
+### Flora
+
+Terdapat lebih dari 2.500 jenis flora dari sekitar 40 famili tumbuhan.
+
+Vegetasi dominan:
+
+- Pinus (Pinus merkusii)
+- Bambu
+- Kaliandra
+- Berbagai tanaman koleksi konservasi
+
+### Fauna
+
+Kawasan ini menjadi habitat bagi berbagai satwa liar seperti:
+
+- Monyet ekor panjang (Macaca fascicularis)
+- Tupai
+- Musang
+- Kepodang
+- Burung ketilang
+- Ayam hutan
+
+Tahura memiliki fungsi ekologis penting sebagai penyedia jasa lingkungan,
+penyimpan karbon, konservasi biodiversitas, dan penyedia sumber air bagi
+wilayah Bandung Raya.
+""")
+
+# ==================================================
+# KALKULATOR TEV
+# ==================================================
+
+elif menu == "Kalkulator TEV":
+
+    st.title("Kalkulator Total Economic Value (TEV)")
+
+    st.write("Masukkan nilai masing-masing komponen ekonomi (Rp/tahun).")
+
+    wisata = st.number_input(
+        "Nilai Wisata",
+        value=4000000000,
+        step=100000000
+    )
+
+    hasil_hutan = st.number_input(
+        "Nilai Hasil Hutan Non Kayu",
+        value=1000000000,
+        step=100000000
+    )
+
+    air = st.number_input(
+        "Nilai Penyediaan Air",
+        value=7000000000,
+        step=100000000
+    )
+
+    karbon = st.number_input(
+        "Nilai Penyimpanan Karbon",
+        value=5000000000,
+        step=100000000
+    )
+
+    pilihan = st.number_input(
+        "Nilai Pilihan",
+        value=2000000000,
+        step=100000000
+    )
+
+    eksistensi = st.number_input(
+        "Nilai Eksistensi",
+        value=3000000000,
+        step=100000000
+    )
+
+    tev = (
+        wisata
+        + hasil_hutan
+        + air
+        + karbon
+        + pilihan
+        + eksistensi
+    )
+
+    st.markdown("---")
+
+    st.metric(
+        "Total Economic Value (TEV)",
+        f"Rp {tev:,.0f}"
+    )
+
+# ==================================================
+# TRADE OFF LAHAN
+# ==================================================
+
+elif menu == "Trade-off Lahan":
+
+    st.title("Trade-off Pemanfaatan Lahan")
+
+    tradeoff = pd.DataFrame({
+        "Alternatif": [
+            "Hutan Lestari",
+            "Konversi Lahan Penduduk"
+        ],
+        "Nilai (Rp)": [
+            22000000000,
+            12000000000
+        ]
+    })
+
+    st.dataframe(tradeoff)
+
+    fig = px.bar(
+        tradeoff,
+        x="Alternatif",
+        y="Nilai (Rp)",
+        title="Perbandingan Nilai Ekonomi"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.info("""
+Nilai ekonomi kawasan yang dipertahankan sebagai hutan lestari
+lebih tinggi dibandingkan konversi lahan untuk permukiman.
+Hal ini menunjukkan pentingnya mempertahankan fungsi ekologis
+dan jasa lingkungan Tahura.
+""")
+
+# ==================================================
+# KEBIJAKAN PES
+# ==================================================
+
+elif menu == "Kebijakan PES":
+
+    st.title("Payment for Ecosystem Services (PES)")
+
+    st.markdown("""
+Tahura Ir. H. Djuanda merupakan penyangga kehidupan bagi Bandung Raya.
+
+### Pihak yang Memanfaatkan Jasa Lingkungan
+
+- BPAB-DC
+- PDAM Tirtawening Kota Bandung
+- PLTA Dago Bengkok
+- Wisatawan
+- Peneliti
+- Masyarakat sekitar
+""")
+
+    jumlah = st.slider(
+        "Jumlah Institusi Pembayar PES",
+        1,
+        10,
+        4
+    )
+
+    iuran = st.number_input(
+        "Iuran per Institusi (Rp/Tahun)",
+        value=500000000
+    )
+
+    total_pes = jumlah * iuran
+
+    st.metric(
+        "Potensi Dana PES",
+        f"Rp {total_pes:,.0f}"
+    )
+
+# ==================================================
+# KASUS INTERAKTIF
+# ==================================================
+
+elif menu == "Kasus Interaktif":
+
+    st.title("Kasus Interaktif Tahura Ir. H. Djuanda")
+
+    st.warning("""
+Pemerintah berencana membuka 100 hektare kawasan hutan
+untuk pembangunan komersial.
+""")
+
+    pilihan = st.radio(
+        "Pilih Kebijakan:",
+        [
+            "Tetap Konservasi",
+            "Konversi Sebagian"
+        ]
+    )
+
+    if pilihan == "Tetap Konservasi":
+
+        st.success("""
+Keanekaragaman hayati tetap terjaga.
+
+Fungsi hidrologis tetap optimal.
+
+Penyimpanan karbon tetap tinggi.
+
+Nilai ekonomi jangka panjang lebih besar.
+""")
+
+    else:
+
+        st.error("""
+Pendapatan jangka pendek meningkat.
+
+Risiko kerusakan lingkungan bertambah.
+
+Cadangan air berpotensi menurun.
+
+Nilai jasa lingkungan berkurang.
+""")
+
+# ==================================================
+# VISUALISASI TEV
+# ==================================================
+
+elif menu == "Visualisasi TEV":
+
+    st.title("Visualisasi Total Economic Value")
+
+    data_tev = pd.DataFrame({
+        "Komponen": [
+            "Wisata",
+            "Hasil Hutan",
+            "Penyediaan Air",
+            "Karbon",
+            "Nilai Pilihan",
+            "Nilai Eksistensi"
+        ],
+        "Nilai (Miliar Rp)": [
+            4,
+            1,
+            7,
+            5,
+            2,
+            3
+        ]
+    })
+
+    fig1 = px.bar(
+        data_tev,
+        x="Komponen",
+        y="Nilai (Miliar Rp)",
+        title="Komponen TEV Tahura Ir. H. Djuanda"
+    )
+
+    st.plotly_chart(fig1, use_container_width=True)
+
+    fig2 = px.pie(
+        data_tev,
+        names="Komponen",
+        values="Nilai (Miliar Rp)",
+        title="Proporsi Komponen TEV"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+    st.dataframe(data_tev)
+```
