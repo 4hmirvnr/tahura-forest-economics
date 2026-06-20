@@ -1,85 +1,86 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Valuasi Ekonomi Tahura Djuanda", layout="wide")
 
+# ==========================================
+# STATE MANAGEMENT
+# ==========================================
+if 'luas' not in st.session_state: st.session_state.luas = 590
+if 'kerapatan' not in st.session_state: st.session_state.kerapatan = 80
+
 # Sidebar Navigasi
-st.sidebar.title("🌲 Navigasi")
 menu = st.sidebar.radio("Pilih Menu:", [
     "1. Beranda", "2. Profil Tahura", "3. Kalkulator TEV", 
     "4. Trade-off Lahan", "5. Kebijakan PES", "6. Kasus Interaktif", "7. Visualisasi TEV"
 ])
 
 # ==========================================
-# INPUT INTERAKTIF (DISIMPAN DI SESSION STATE)
-# ==========================================
-if 'luas' not in st.session_state: st.session_state.luas = 590
-if 'kerapatan' not in st.session_state: st.session_state.kerapatan = 80
-
-# ==========================================
 # LOGIKA MENU
 # ==========================================
 if menu == "1. Beranda":
-    st.title("PBL 6 - Ekonomi Sumber Daya Alam")
-    st.write("Kelompok 3: Ahmad Irvan, Freya Helga, Muhammad Yaasin")
+    st.title("PBL 6 - Ekonomi Sumber Daya Alam dan Lingkungan 🌍")
+    st.markdown("### Identitas Kelompok 3")
+    st.write("• Ahmad Irvan Nur Varizki (10090224011)")
+    st.write("• Freya Helga Pebrian (10090224017)")
+    st.write("• Muhammad Yaasin As-Suhaimi (10090224028)")
+    st.write("**Dosen Pengampu:** Yuhka Sundaya, S.E., M.S.i")
+
+elif menu == "2. Profil Tahura":
+    st.title("Profil Taman Hutan Raya Ir. H. Juanda 🏞️")
+    st.write("Tahura pertama di Indonesia, diresmikan 1985. Luas 590 Ha, elevasi 770-1330 mdpl.")
+    st.write("Berfungsi sebagai daerah tangkapan air Sungai Cikapundung.")
+    st.write("Kekayaan botani meliputi 2.500 jenis flora, dan habitat fauna seperti monyet kra, burung kepodang, dan tupai.")
 
 elif menu == "3. Kalkulator TEV":
-    st.header("Kalkulator Total Economic Value (TEV) 🧮")
-    st.markdown("Input parameter hutan lokal untuk memproyeksikan nilai ekonomi total.")
-    
-    # Input Parameter
+    st.header("Kalkulator TEV 🧮")
     st.session_state.luas = st.number_input("Luas Lahan (Ha)", value=st.session_state.luas)
     st.session_state.kerapatan = st.slider("Kerapatan Vegetasi (%)", 10, 100, st.session_state.kerapatan)
     
-    # Faktor pengali (asumsi per hektar)
     factor = st.session_state.luas * (st.session_state.kerapatan / 100)
+    manfaat_langsung = factor * 25
+    manfaat_hidrologis = factor * 45
+    nilai_warisan_eksistensi = factor * 30
+    total = manfaat_langsung + manfaat_hidrologis + nilai_warisan_eksistensi
     
-    # Perhitungan 3 Poin TEV
-    manfaat_langsung = factor * 25  # Kayu & Non-kayu
-    manfaat_hidrologis = factor * 45 # Hidrologis & Erosi
-    nilai_warisan_eksistensi = factor * 30 # Warisan & Satwa
-    
-    total_tev = manfaat_langsung + manfaat_hidrologis + nilai_warisan_eksistensi
-    
-    # Tampilan Hasil
     col1, col2, col3 = st.columns(3)
-    col1.metric("Manfaat Langsung (Juta Rp)", f"{manfaat_langsung:,.0f}")
-    col2.metric("Manfaat Hidrologis (Juta Rp)", f"{manfaat_hidrologis:,.0f}")
-    col3.metric("Nilai Warisan & Satwa (Juta Rp)", f"{nilai_warisan_eksistensi:,.0f}")
+    col1.metric("Manfaat Langsung", f"{manfaat_langsung:,.0f} Juta")
+    col2.metric("Manfaat Hidrologis", f"{manfaat_hidrologis:,.0f} Juta")
+    col3.metric("Nilai Warisan/Eksistensi", f"{nilai_warisan_eksistensi:,.0f} Juta")
+    st.success(f"TOTAL TEV: Rp {total:,.0f} Juta")
+
+elif menu == "4. Trade-off Lahan":
+    st.header("Simulasi Trade-off Lahan ⚖️")
+    kayu = st.slider("Laba Komersial (Milyar)", 10, 100, 40)
+    konversi = st.slider("Laba Konversi (Milyar)", 10, 150, 65)
+    total_tev_m = (st.session_state.luas * (50 * (st.session_state.kerapatan / 100))) / 1000
     
-    st.markdown("---")
-    st.metric("TOTAL ECONOMIC VALUE (TEV)", f"Rp {total_tev:,.0f} Juta")
-    
-    st.info("""
-    **Penjelasan Komponen:**
-    1. **Manfaat Langsung**: Estimasi nilai pasar dari hasil hutan kayu dan bukan kayu (buah/getah). [cite: 42]
-    2. **Manfaat Hidrologis**: Estimasi nilai ekonomi dari jasa perlindungan tata air dan pencegahan erosi tanah. [cite: 42]
-    3. **Nilai Warisan & Eksistensi**: Nilai ekonomi yang mencerminkan keberadaan satwa liar dan hak generasi mendatang untuk menikmati hutan (bequest value). [cite: 43]
-    """)
+    fig, ax = plt.subplots()
+    ax.barh(['Hutan Lestari', 'Hasil Komersial', 'Konversi'], [total_tev_m, kayu, konversi], color=['green', 'gray', 'red'])
+    st.pyplot(fig)
+
+elif menu == "5. Kebijakan PES":
+    st.header("Kebijakan Payment for Ecosystem Services (PES) 💧")
+    harga_c = st.slider("Harga Karbon ($/Ton)", 1, 50, 15)
+    tarif_air = st.slider("Tarif Air (Rp/m3)", 100, 1000, 250)
+    total_pes = ((harga_c * 15000) * 15500) + (tarif_air * 5000000)
+    st.metric("Total Potensi Dana PES (Rp)", f"{total_pes:,.0f}")
+
+elif menu == "6. Kasus Interaktif":
+    st.header("Kasus Interaktif Tahura 🐒")
+    df = pd.DataFrame({
+        "Kategori": ["Provisioning", "Regulating", "Cultural", "Supporting"],
+        "Metode": ["Market Price", "Replacement Cost", "Travel Cost", "Indirect"]
+    })
+    st.table(df)
 
 elif menu == "7. Visualisasi TEV":
-    st.header("Visualisasi TEV")
+    st.header("Visualisasi TEV 📊")
+    factor = st.session_state.luas * (st.session_state.kerapatan / 100)
+    sizes = [factor * 25, factor * 45, factor * 30]
     
-    # HITUNG ULANG DI SINI AGAR SELALU UPDATE
-    total = st.session_state.luas * (50 * (st.session_state.kerapatan / 100))
-    
-    labels = ['Guna Langsung', 'Regulating', 'Option Value', 'Existence']
-    sizes = [total * 0.25, total * 0.45, total * 0.15, total * 0.15]
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        fig1, ax1 = plt.subplots()
-        ax1.pie(sizes, labels=labels, autopct='%1.1f%%')
-        st.pyplot(fig1)
-        
-    with col2:
-        fig2, ax2 = plt.subplots()
-        ax2.bar(labels, sizes, color=['red', 'blue', 'green', 'orange'])
-        ax2.set_ylabel('Juta Rupiah')
-        st.pyplot(fig2)
-
-    st.success(f"Total TEV saat ini: Rp {total:,.2f} Juta")
+    fig, ax = plt.subplots()
+    ax.pie(sizes, labels=['Langsung', 'Hidrologis', 'Warisan'], autopct='%1.1f%%')
+    st.pyplot(fig)
