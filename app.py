@@ -27,12 +27,38 @@ if menu == "1. Beranda":
     st.write("Kelompok 3: Ahmad Irvan, Freya Helga, Muhammad Yaasin")
 
 elif menu == "3. Kalkulator TEV":
-    st.header("Kalkulator TEV")
-    st.session_state.luas = st.number_input("Luas Lahan (Ha)", value=st.session_state.luas)
-    st.session_state.kerapatan = st.slider("Kerapatan (%)", 10, 100, st.session_state.kerapatan)
+    st.header("Kalkulator Total Economic Value (TEV) 🧮")
+    st.markdown("Input parameter hutan lokal untuk memproyeksikan nilai ekonomi total.")
     
-    total = st.session_state.luas * (50 * (st.session_state.kerapatan / 100))
-    st.metric("Total TEV (Juta Rp)", f"{total:,.2f}")
+    # Input Parameter
+    st.session_state.luas = st.number_input("Luas Lahan (Ha)", value=st.session_state.luas)
+    st.session_state.kerapatan = st.slider("Kerapatan Vegetasi (%)", 10, 100, st.session_state.kerapatan)
+    
+    # Faktor pengali (asumsi per hektar)
+    factor = st.session_state.luas * (st.session_state.kerapatan / 100)
+    
+    # Perhitungan 3 Poin TEV
+    manfaat_langsung = factor * 25  # Kayu & Non-kayu
+    manfaat_hidrologis = factor * 45 # Hidrologis & Erosi
+    nilai_warisan_eksistensi = factor * 30 # Warisan & Satwa
+    
+    total_tev = manfaat_langsung + manfaat_hidrologis + nilai_warisan_eksistensi
+    
+    # Tampilan Hasil
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Manfaat Langsung (Juta Rp)", f"{manfaat_langsung:,.0f}")
+    col2.metric("Manfaat Hidrologis (Juta Rp)", f"{manfaat_hidrologis:,.0f}")
+    col3.metric("Nilai Warisan & Satwa (Juta Rp)", f"{nilai_warisan_eksistensi:,.0f}")
+    
+    st.markdown("---")
+    st.metric("TOTAL ECONOMIC VALUE (TEV)", f"Rp {total_tev:,.0f} Juta")
+    
+    st.info("""
+    **Penjelasan Komponen:**
+    1. **Manfaat Langsung**: Estimasi nilai pasar dari hasil hutan kayu dan bukan kayu (buah/getah). [cite: 42]
+    2. **Manfaat Hidrologis**: Estimasi nilai ekonomi dari jasa perlindungan tata air dan pencegahan erosi tanah. [cite: 42]
+    3. **Nilai Warisan & Eksistensi**: Nilai ekonomi yang mencerminkan keberadaan satwa liar dan hak generasi mendatang untuk menikmati hutan (bequest value). [cite: 43]
+    """)
 
 elif menu == "7. Visualisasi TEV":
     st.header("Visualisasi TEV")
