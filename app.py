@@ -115,7 +115,6 @@ elif menu == "2. Profil Taman Hutan Raya Ir. H. Juanda":
             "burung kepodang yang memiliki warna mencolok, burung ketilang yang rajin berkicau, hingga ayam hutan yang "
             "sering berkeliaran di semak-semak kawasan hutan yang lebih dalam."
         )
-
 # -----------------------------------------------------------------------------
 # MENU 3: KALKULATOR TEV
 # -----------------------------------------------------------------------------
