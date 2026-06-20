@@ -6,16 +6,20 @@ import matplotlib.pyplot as plt
 # Konfigurasi Halaman
 st.set_page_config(page_title="Valuasi Ekonomi Tahura Djuanda", page_icon="🌲", layout="wide")
 
-# Inisialisasi Session State agar data antar menu tersambung
+# ==========================================
+# STATE MANAGEMENT (MEMORI APLIKASI)
+# ==========================================
+# Menggunakan 'key' agar nilai selalu tersimpan meski pindah menu
 if 'luas_lahan' not in st.session_state:
     st.session_state['luas_lahan'] = 590
 if 'kerapatan' not in st.session_state:
     st.session_state['kerapatan'] = 80
-if 'total_value' not in st.session_state:
-    # 50 juta/ha asumsi dasar * rasio kerapatan
-    st.session_state['total_value'] = 590 * (50 * (80 / 100))
 
-# Sidebar Navigasi - 7 Pilihan Menu
+# KALKULASI GLOBAL: Dihitung di luar menu agar selalu update di semua halaman
+base_value_per_ha = 50 * (st.session_state['kerapatan'] / 100)
+total_tev_global = st.session_state['luas_lahan'] * base_value_per_ha
+
+# Sidebar Navigasi
 st.sidebar.title("🌲 Navigasi Aplikasi")
 menu = st.sidebar.radio("Pilih Menu:", [
     "1. Beranda", 
@@ -52,7 +56,6 @@ if menu == "1. Beranda":
 # ==========================================
 elif menu == "2. Profil Tahura Ir. H. Juanda":
     st.title("Profil Taman Hutan Raya Ir. H. Juanda 🏞️")
-    
     st.markdown("""
     Taman Hutan Raya (Tahura) Ir. H. Djuanda merupakan kawasan pelestarian alam sekaligus Taman Hutan Raya pertama di Indonesia yang diresmikan oleh Presiden Soeharto pada tanggal 14 Januari 1985. Berlokasi di kawasan Ciburial, Kecamatan Cimenyan, Bandung, Jawa Barat, kawasan ini dinamai demikian untuk menghormati jasa pahlawan nasional Ir. H. Djuanda. Secara geografis, Tahura Ir. H. Djuanda memiliki bentang lahan seluas kurang lebih 590 hektare yang berada pada ketinggian antara 770 hingga 1.330 meter di atas permukaan laut. Kawasan yang terletak di cekungan Bandung Purba ini tidak hanya berfungsi sebagai destinasi wisata sejarah dan alam—seperti keberadaan Gua Belanda dan Gua Jepang—tetapi juga memegang peran ekologis yang sangat krusial sebagai daerah tangkapan air utama untuk aliran Sungai Cikapundung.
     
@@ -71,18 +74,9 @@ elif menu == "3. Kalkulator TEV":
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("Parameter Hutan")
-        # Nilai default ditarik dari session_state
-        luas = st.number_input("Luas Lahan (Hektar)", min_value=1, max_value=10000, value=st.session_state['luas_lahan'])
-        kerapatan = st.slider("Kerapatan Vegetasi (%)", 10, 100, st.session_state['kerapatan'])
-        
-        # Hitung kalkulasi
-        base_value_per_ha = 50 * (kerapatan / 100) 
-        total_value = luas * base_value_per_ha
-        
-        # Simpan kembali ke session_state agar grafiknya update
-        st.session_state['luas_lahan'] = luas
-        st.session_state['kerapatan'] = kerapatan
-        st.session_state['total_value'] = total_value
+        # Menggunakan parameter "key" agar otomatis mengupdate session_state dan nilai global
+        st.number_input("Luas Lahan (Hektar)", min_value=1, max_value=10000, key='luas_lahan')
+        st.slider("Kerapatan Vegetasi (%)", 10, 100, key='kerapatan')
         
     with col2:
         st.subheader("Komposisi TEV Hutan Tropis Ideal")
@@ -95,15 +89,15 @@ elif menu == "3. Kalkulator TEV":
             ],
             "Persentase": ["25%", "45%", "15%", "15%"],
             "Nilai Estimasi (Juta Rp)": [
-                total_value * 0.25,
-                total_value * 0.45,
-                total_value * 0.15,
-                total_value * 0.15
+                total_tev_global * 0.25,
+                total_tev_global * 0.45,
+                total_tev_global * 0.15,
+                total_tev_global * 0.15
             ]
         }
         df_tev = pd.DataFrame(data_tev)
         st.dataframe(df_tev.style.format({"Nilai Estimasi (Juta Rp)": "{:,.2f}"}), use_container_width=True)
-        st.metric(label="Total Economic Value (TEV) per Tahun", value=f"Rp {total_value:,.2f} Juta")
+        st.metric(label="Total Economic Value (TEV) per Tahun", value=f"Rp {total_tev_global:,.2f} Juta")
 
     st.info("💡 **Insight Ekonomi:** Sebagian besar nilai ekonomi Tahura terletak pada jasa pengatur hidrologi Sungai Cikapundung (45%), bukan pada pemanfaatan kayu atau getah pinus (25%).")
 
@@ -112,33 +106,46 @@ elif menu == "3. Kalkulator TEV":
 # ==========================================
 elif menu == "4. Trade-off Lahan":
     st.header("Simulasi Trade-off Lahan ⚖️")
-    st.markdown("Membandingkan ekonomi konversi lahan vs mempertahankan kelestarian Tahura Ir. H. Djuanda.")
+    st.markdown("Kamu bertindak sebagai analis kebijakan. Atur proyeksi keuntungan dari skenario alih fungsi lahan di Tahura dan bandingkan dengan nilai kelestariannya (TEV)!")
     
-    st.subheader("Sisi Eksploitasi vs Sisi Konservasi Berkelanjutan")
+    col_to1, col_to2 = st.columns([1, 2])
     
-    categories = ['Hutan Lestari (TEV)', 'Hasil Komersial Ekstraktif', 'Konversi Kawasan Komersial']
+    with col_to1:
+        st.subheader("Instrumen Simulasi")
+        st.markdown("Silakan geser estimasi laba konversi:")
+        # User sekarang bisa berinteraksi merubah nilai keuntungan komersial
+        hasil_kayu = st.slider("Laba Hasil Penebangan (Milyar Rp)", 10, 100, 40)
+        konversi_lahan = st.slider("Laba Konversi Wisata/Komersial (Milyar Rp)", 10, 150, 65)
     
-    # Asumsi skala nilai berdasarkan nilai TEV di session_state (dibagi 1000 agar jadi Milyar)
-    nilai_lestari = st.session_state['total_value'] / 1000 
-    values = [nilai_lestari, nilai_lestari * 0.4, nilai_lestari * 0.7] 
-    
-    fig, ax = plt.subplots(figsize=(10, 4))
-    colors = ['#1a5227', '#7b8494', '#bd623b']
-    bars = ax.barh(categories, values, color=colors)
-    ax.set_xlabel('Nilai Ekonomi (Milyar Rp / Tahun)')
-    ax.invert_yaxis()
-    
-    for bar in bars:
-        width = bar.get_width()
-        ax.annotate(f'{width:,.1f} M',
-                    xy=(width, bar.get_y() + bar.get_height() / 2),
-                    xytext=(-5, 0),  
-                    textcoords="offset points",
-                    ha='right', va='center', color='white', fontweight='bold')
+    with col_to2:
+        st.subheader("Grafik Perbandingan Nilai Lahan")
+        categories = ['Hutan Lestari (TEV)', 'Hasil Komersial Ekstraktif', 'Konversi Kawasan Komersial']
+        
+        # Mengambil nilai TEV global dan mengubahnya ke skala Milyar Rupiah
+        nilai_lestari = total_tev_global / 1000 
+        values = [nilai_lestari, hasil_kayu, konversi_lahan] 
+        
+        fig, ax = plt.subplots(figsize=(10, 4))
+        colors = ['#1a5227', '#7b8494', '#bd623b']
+        bars = ax.barh(categories, values, color=colors)
+        ax.set_xlabel('Nilai Ekonomi (Milyar Rp / Tahun)')
+        ax.invert_yaxis()
+        
+        for bar in bars:
+            width = bar.get_width()
+            ax.annotate(f'{width:,.1f} M',
+                        xy=(width, bar.get_y() + bar.get_height() / 2),
+                        xytext=(-5, 0),  
+                        textcoords="offset points",
+                        ha='right', va='center', color='white', fontweight='bold')
 
-    st.pyplot(fig)
+        st.pyplot(fig)
     
-    st.warning("⚠️ **Analisis:** Mengorbankan tutupan vegetasi hutan untuk pembangunan komersial memang memberi *cash flow* pasar yang cepat, namun mengabaikan eksternalitas negatif jangka panjang. Mempertahankan TEV (termasuk nilai hidrologi dan serapan karbon) jauh lebih unggul secara sosial dan ekonomi makro.")
+    # Logika peringatan yang dinamis
+    if konversi_lahan > nilai_lestari:
+        st.error("🚨 **Peringatan Ekonomi:** Tekanan eksploitasi sangat tinggi! Keuntungan konversi komersial melampaui nilai TEV. Kebijakan proteksi ketat sangat dibutuhkan.")
+    else:
+        st.success("✅ **Keunggulan Konservasi:** Mempertahankan tutupan vegetasi hutan terbukti jauh lebih unggul secara sosial dan ekonomi makro dibandingkan konversi lahan.")
 
 # ==========================================
 # 5. KEBIJAKAN PES
@@ -150,7 +157,6 @@ elif menu == "5. Kebijakan PES":
     col_pes1, col_pes2 = st.columns(2)
     with col_pes1:
         harga_karbon = st.slider("Harga Karbon ($/Ton CO2)", 1, 50, 15)
-        # Asumsi Tahura 590 Ha menyerap sekitar 15.000 ton
         serapan_ton = st.number_input("Estimasi Serapan Karbon Tahura (Ton/Tahun)", value=15000)
         
         tarif_air = st.slider("Tarif Jasa Lingkungan Air Bersih (Rp/m3)", 100, 1000, 250)
@@ -166,7 +172,7 @@ elif menu == "5. Kebijakan PES":
         st.metric(label="Jasa Air Bersih", value=f"Rp {pendapatan_air_rp / 1e6:,.2f} Juta")
         st.metric(label="Total Kompensasi Finansial", value=f"Rp {total_pes / 1e6:,.2f} Juta")
         
-        opportunity_cost = 6000000000 # Asumsi nilai batas minimal kelayakan
+        opportunity_cost = 6000000000 
         if total_pes > opportunity_cost:
             st.info("✅ **Keseimbangan Ekologis-Ekonomi Tercapai:** Dana kompensasi PES dapat diinvestasikan kembali untuk operasional perlindungan kawasan Tahura.")
         else:
@@ -208,11 +214,11 @@ elif menu == "6. Kasus Interaktif Tahura":
 # ==========================================
 elif menu == "7. Visualisasi TEV":
     st.header("Visualisasi Total Economic Value (TEV) 📊")
-    st.markdown("Distribusi porsi nilai ekonomi Tahura berdasarkan parameter luas dan kerapatan dari Kalkulator TEV.")
+    st.markdown("Distribusi porsi nilai ekonomi Tahura berdasarkan parameter dari Kalkulator TEV.")
     
-    total = st.session_state['total_value']
+    # Mengambil nilai yang sudah ter-update secara global
+    total = total_tev_global
     
-    # Nilai komponen
     komponen = ['Guna Langsung (25%)', 'Regulating (45%)', 'Option Value (15%)', 'Existence Value (15%)']
     nilai = [total * 0.25, total * 0.45, total * 0.15, total * 0.15]
     
