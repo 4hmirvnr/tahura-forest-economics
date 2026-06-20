@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 
 # Konfigurasi Halaman Utama
 st.set_page_config(
@@ -20,13 +19,13 @@ if 'direct_tourism' not in st.session_state:
     st.session_state['option_value'] = 2000000000
     st.session_state['existence_value'] = 3500000000
 
-# Navigasi Sidebar
+# Navigasi Sidebar (Teks sudah disamakan persis dengan kondisi di bawah)
 st.sidebar.title("📌 Menu Navigasi")
 menu = st.sidebar.radio(
     "Pilih Halaman:",
     [
         "1. Beranda",
-        "2. Profil Tahura Ir. H. Juanda",
+        "2. Profil Taman Hutan Raya Ir. H. Juanda",
         "3. Kalkulator TEV",
         "4. Trade-off Lahan",
         "5. Kebijakan PES",
@@ -43,7 +42,6 @@ if menu == "1. Beranda":
     st.subheader("Project-Based Learning (PBL) 6")
     st.markdown("---")
     
-    # Menggunakan layout kolom untuk tampilan yang rapi
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -115,6 +113,7 @@ elif menu == "2. Profil Taman Hutan Raya Ir. H. Juanda":
             "burung kepodang yang memiliki warna mencolok, burung ketilang yang rajin berkicau, hingga ayam hutan yang "
             "sering berkeliaran di semak-semak kawasan hutan yang lebih dalam."
         )
+
 # -----------------------------------------------------------------------------
 # MENU 3: KALKULATOR TEV
 # -----------------------------------------------------------------------------
@@ -165,7 +164,6 @@ elif menu == "4. Trade-off Lahan":
         "sebagai Hutan Lestari."
     )
     
-    # Hitung TEV dari session state saat ini
     tev_sekarang = (st.session_state['direct_tourism'] + st.session_state['direct_products'] + 
                     st.session_state['indirect_water'] + st.session_state['indirect_carbon'] + 
                     st.session_state['option_value'] + st.session_state['existence_value'])
@@ -214,14 +212,12 @@ elif menu == "5. Kebijakan PES":
     )
     
     st.subheader("🎛️ Simulasi Kebijakan Tarif Jasa Lingkungan Air Bersih (PES)")
-    st.write("Bagaimana jika pengguna air memberikan kontribusi langsung (retribusi konservasi) untuk menjaga hulu sungai di Tahura?")
     
     vol_air = st.number_input("Volume Penggunaan Air oleh PDAM / Masyarakat per Tahun (m³)", value=15000000, step=1000000)
     tarif_pes = st.slider("Besaran Tarif PES Konservasi Air yang disarankan (Rp per m³)", 50, 500, 150)
     
     dana_pes = vol_air * tarif_pes
     st.success(f"💰 **Total Potensi Dana Konservasi Terkumpul:** Rp {dana_pes:,.0f} / tahun")
-    st.caption("Dana ini dapat dialokasikan kembali untuk reboisasi, peningkatan keamanan hutan, dan pemberdayaan masyarakat sekitar hutan agar tidak merusak vegetasi hulu.")
 
 # -----------------------------------------------------------------------------
 # MENU 6: KASUS INTERAKTIF
@@ -256,17 +252,16 @@ elif menu == "6. Kasus Interaktif":
             st.error(
                 "❌ **Dampak Keputusan A:** Meskipun nilai guna langsung pariwisata meningkat di tahun-tahun awal, "
                 "terjadi degradasi parah pada jasa lingkungan (banjir bandang di hilir Sungai Cikapundung dan penurunan volume air bersih). "
-                "Nilai Eksistensi keanekaragaman hayati turun drastis karena kera ekor panjang mulai masuk ke pemukiman warga akibat kehilangan habitat."
+                "Nilai Eksistensi keanekaragaman hayati turun drastis."
             )
         elif pilihan == "Pilihan B":
             st.warning(
                 "⚠️ **Dampak Keputusan B:** Kelestarian alam dan suplai air terjaga 100%. "
-                "Namun, daerah kehilangan potensi pertumbuhan ekonomi, dan masyarakat sekitar tidak mendapatkan lapangan pekerjaan baru dari industri pariwisata."
+                "Namun, daerah kehilangan potensi pertumbuhan ekonomi dan lapangan pekerjaan baru."
             )
         else:
             st.success(
-                "✅ **Dampak Keputusan C (Pilihan Terbaik!):** Ini adalah pendekatan Ekonomi Lingkungan yang berimbang! "
-                "Anda menerapkan pembangunan berkelanjutan (*Sustainable Development*). Perekonomian tetap bergerak berkat pariwisata hijau, "
+                "✅ **Dampak Keputusan C (Pilihan Terbaik!):** Perekonomian tetap bergerak berkat pariwisata hijau, "
                 "sementara kelestarian ekosistem dan pasokan air PDAM tetap terjamin melalui pendanaan skema PES."
             )
 
@@ -275,10 +270,8 @@ elif menu == "6. Kasus Interaktif":
 # -----------------------------------------------------------------------------
 elif menu == "7. Visualisasi Grafik TEV":
     st.title("📊 Visualisasi Hasil Pengukuran Nilai Ekonomi Total (TEV)")
-    st.write("Grafik interaktif yang menyajikan kontribusi dari setiap komponen nilai ekonomi di Tahura Ir. H. Juanda.")
     st.markdown("---")
     
-    # Menyiapkan data dari kalkulator
     data_tev = {
         'Komponen Nilai': [
             'Wisata & Retribusi (Direct)', 
@@ -306,25 +299,12 @@ elif menu == "7. Visualisasi Grafik TEV":
     
     with col1:
         st.subheader("1. Distribusi Komponen Nilai (Pie Chart)")
-        fig_pie = px.pie(
-            df, 
-            values='Nilai (Rp)', 
-            names='Komponen Nilai', 
-            color_discrete_sequence=px.colors.sequential.Darkmint,
-            hole=0.3
-        )
+        fig_pie = px.pie(df, values='Nilai (Rp)', names='Komponen Nilai', color_discrete_sequence=px.colors.sequential.Darkmint, hole=0.3)
         st.plotly_chart(fig_pie, use_container_width=True)
         
     with col2:
         st.subheader("2. Perbandingan Nilai Rupiah (Bar Chart)")
-        fig_bar = px.bar(
-            df, 
-            x='Komponen Nilai', 
-            y='Nilai (Rp)', 
-            color='Kategori',
-            text_auto='.2s',
-            color_discrete_sequence=px.colors.qualitative.Bold
-        )
+        fig_bar = px.bar(df, x='Komponen Nilai', y='Nilai (Rp)', color='Kategori', text_auto='.2s', color_discrete_sequence=px.colors.qualitative.Bold)
         fig_bar.update_layout(xaxis_tickangle=-45)
         st.plotly_chart(fig_bar, use_container_width=True)
 
